@@ -5,11 +5,12 @@ const { verifyToken, verifyAdmin } = require('../middleware/authMiddleware');
 const PDFDocument = require('pdfkit');
 const { WritableStreamBuffer } = require('stream-buffers');
 const ExcelJS = require('exceljs');
+const moment = require('moment-timezone');
 
 
 // Admin input data peminjaman
 router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
-    const { id_barang, peminjam } = req.body;
+    const { id_barang, peminjam, } = req.body;
   
     try {
       const barang = await pool.query('SELECT * FROM items WHERE id = $1', [id_barang]);
@@ -21,12 +22,14 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
       if (barang.rows[0].stok < 1) {
         return res.status(400).json({ message: 'Stok barang habis' });
       }
+      
+      const tanggalPinjamWIB = moment().tz('Asia/Jakarta').format();
   
       const pinjam = await pool.query(
         `INSERT INTO peminjaman 
-          (id_barang, peminjam, status) 
-         VALUES ($1, $2, $3) RETURNING *`,
-        [id_barang, peminjam, 'dipinjam']
+          (id_barang, peminjam, status, tanggal_pinjam) 
+         VALUES ($1, $2, $3, $4) RETURNING *`,
+        [id_barang, peminjam, 'dipinjam', tanggalPinjamWIB]
       );
       
       
@@ -42,7 +45,8 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
 
   router.put('/kembalikan/:id', verifyToken, verifyAdmin, async (req, res) => {
     const id = req.params.id;
-    const now = new Date();
+    const tanggalPinjamWIB = moment().tz('Asia/Jakarta').format();
+
 
   
     try {
@@ -64,7 +68,7 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
         `UPDATE peminjaman 
          SET status = $1, tanggal_kembali = $2 
          WHERE id = $3 RETURNING *`,
-        ['dikembalikan', now, id]
+        ['dikembalikan', tanggalPinjamWIB, id]
       );
   
       // Tambah stok barang kembali
@@ -84,21 +88,24 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
 
   router.get('/riwayat', verifyToken, verifyAdmin, async (req, res) => {
     const { status, nama } = req.query;
-
+  
     let query = `
       SELECT 
         p.id, 
         p.peminjam,
         p.status,
         p.tanggal_pinjam,
-        p.tanggal_kembali,
+        CASE 
+          WHEN p.status = 'dipinjam' THEN NULL
+          ELSE p.tanggal_kembali
+        END AS tanggal_kembali,
         i.nama_barang
       FROM peminjaman p
       JOIN items i ON p.id_barang = i.id
     `;
-    
-    let whereClauses = [];
-    let values = [];
+  
+    const whereClauses = [];
+    const values = [];
   
     if (status === 'dipinjam' || status === 'dikembalikan') {
       values.push(status);
@@ -122,8 +129,10 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
     } catch (err) {
       res.status(500).json({ error: err.message });
     }
-  
   });
+  
+  
+
 
   router.get('/laporan/mingguan', verifyToken, verifyAdmin, async (req, res) => {
     try {
