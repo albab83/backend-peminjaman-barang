@@ -4,33 +4,38 @@ require('dotenv').config();
 
 const app = express();
 
-// CORS setup dengan opsi spesifik
+// ✅ Setup CORS dengan konfigurasi aman
 const corsOptions = {
-  origin: 'https://frontend-peminjaman-barang.vercel.app',  // Ganti dengan domain frontend Anda
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],  // Metode yang diperbolehkan
-  allowedHeaders: ['Content-Type', 'Authorization'],  // Header yang diizinkan
+  origin: process.env.FRONTEND_URL || 'https://frontend-peminjaman-barang.vercel.app',
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 };
 
-// Gunakan CORS untuk semua rute dengan opsi yang ditentukan
+// Middleware CORS
 app.use(cors(corsOptions));
+app.options('*', cors(corsOptions)); // untuk preflight semua rute
 
-// Menangani permintaan preflight (OPTIONS) untuk semua rute
-app.options('*', cors(corsOptions));
-
-// Middleware lainnya
+// ✅ Middleware parsing JSON
 app.use(express.json());
 
-// Routes
-const authRoutes = require('./routes/auth');
-app.use('/api/auth', authRoutes);
+// ✅ Routing
+app.use('/api/auth', require('./routes/auth'));
+app.use('/api/items', require('./routes/items'));
+app.use('/api/peminjaman', require('./routes/peminjaman'));
+app.use('/api/dashboard', require('./routes/dashboard'));
 
-const itemRoutes = require('./routes/items');
-app.use('/api/items', itemRoutes);
+// ✅ Fallback untuk rute yang tidak ditemukan
+app.use((req, res, next) => {
+  res.status(404).json({ message: 'Rute tidak ditemukan' });
+});
 
-const pinjamRoutes = require('./routes/peminjaman');
-app.use('/api/peminjaman', pinjamRoutes);
-
-const dashboardRoutes = require('./routes/dashboard');
-app.use('/api/dashboard', dashboardRoutes);
+// ✅ Jalankan server jika file ini dijalankan langsung
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 Server berjalan di port ${PORT}`);
+  });
+}
 
 module.exports = app;

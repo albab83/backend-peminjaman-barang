@@ -1,20 +1,27 @@
-const pool = require('../config/db'); // atau sesuaikan path sesuai tempat file db.js kamu
 const express = require('express');
 const router = express.Router();
-const { verifyToken, verifyAdmin } = require('../middleware/authMiddleware'); // pastikan path sesuai
+const pool = require('../config/db');
+const { verifyToken, verifyAdmin } = require('../middleware/authMiddleware');
 
-// Endpoint untuk mendapatkan ringkasan data
+// Endpoint: GET /api/dashboard/ringkasan
 router.get('/ringkasan', verifyToken, verifyAdmin, async (req, res) => {
   try {
-    const totalBarang = await pool.query('SELECT COUNT(*) FROM items');
-    const totalDipinjam = await pool.query(`SELECT COUNT(*) FROM peminjaman WHERE status = 'dipinjam'`);
+    const [totalBarangRes, totalDipinjamRes] = await Promise.all([
+      pool.query('SELECT COUNT(*) FROM items'),
+      pool.query(`SELECT COUNT(*) FROM peminjaman WHERE status = 'dipinjam'`)
+    ]);
 
-    res.json({
-      total_barang: parseInt(totalBarang.rows[0].count),
-      total_dipinjam: parseInt(totalDipinjam.rows[0].count),
+    const total_barang = parseInt(totalBarangRes.rows[0].count, 10);
+    const total_dipinjam = parseInt(totalDipinjamRes.rows[0].count, 10);
+
+    res.status(200).json({
+      message: 'Ringkasan data berhasil diambil',
+      total_barang,
+      total_dipinjam
     });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('❌ Error saat mengambil ringkasan:', err.message);
+    res.status(500).json({ message: 'Gagal mengambil data ringkasan', error: err.message });
   }
 });
 

@@ -1,19 +1,35 @@
 const { Pool } = require('pg');
 require('dotenv').config();
 
-const isLocalhost = process.env.DATABASE_URL.includes('localhost');
+// Cek apakah DATABASE_URL tersedia
+const dbUrl = process.env.DATABASE_URL;
 
+if (!dbUrl) {
+  console.error('❌ DATABASE_URL tidak ditemukan di file .env');
+  process.exit(1); // Hentikan proses jika tidak ada URL
+}
+
+// Cek apakah host-nya localhost
+const isLocalhost = dbUrl.includes('localhost');
+
+// Buat pool koneksi
 const pool = new Pool({
-  connectionString: process.env.DATABASE_URL,
+  connectionString: dbUrl,
   ssl: isLocalhost ? false : { rejectUnauthorized: false }
 });
 
-// Setelah connect, set timezone Asia/Jakarta
+// Coba koneksi dan set timezone ke Asia/Jakarta
 pool.connect()
   .then(async (client) => {
     console.log('✅ Koneksi ke database berhasil!');
 
-    client.release(); // Penting! balikin koneksi ke pool
+    try {
+      await client.query(`SET TIME ZONE 'Asia/Jakarta'`);
+    } catch (timezoneErr) {
+      console.error('⚠️ Gagal set timezone:', timezoneErr.message);
+    } finally {
+      client.release(); // Penting: kembalikan koneksi ke pool
+    }
   })
   .catch((err) => {
     console.error('❌ Gagal konek ke database:', err.message);
