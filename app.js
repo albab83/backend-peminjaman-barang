@@ -3,10 +3,12 @@ const cors = require('cors');
 require('dotenv').config();
 
 const app = express();
+const routes = require('express-list-endpoints');
+console.log(routes(app));
 
 // ✅ Setup CORS dengan konfigurasi aman
 const corsOptions = {
-  origin: process.env.FRONTEND_URL || 'https://frontend-peminjaman-barang.vercel.app',
+  origin:'https://frontend-peminjaman-barang.vercel.app',
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
@@ -14,13 +16,15 @@ const corsOptions = {
 
 // Middleware CORS
 app.use(cors(corsOptions));
+console.log('CORS origin yang digunakan:', corsOptions.origin);
+
 app.options('*', cors(corsOptions)); // untuk preflight semua rute
 
 // ✅ Middleware parsing JSON
 app.use(express.json());
 
 // ✅ Routing
-app.use('/api/auth', require('./routes/auth'));
+app.use('/api/auth', require('./routes/auth'));         
 app.use('/api/items', require('./routes/items'));
 app.use('/api/peminjaman', require('./routes/peminjaman'));
 app.use('/api/dashboard', require('./routes/dashboard'));
@@ -37,5 +41,8 @@ if (require.main === module) {
     console.log(`🚀 Server berjalan di port ${PORT}`);
   });
 }
+
+
+
 
 module.exports = app;

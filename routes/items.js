@@ -71,7 +71,7 @@ router.delete('/hapus/:id', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 // ✅ Ambil semua data barang
-router.get('/', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/barang', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM items ORDER BY id DESC');
     res.status(200).json({ data: result.rows });
