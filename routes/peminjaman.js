@@ -23,14 +23,14 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
         return res.status(400).json({ message: 'Stok barang habis' });
       }
       
-      const tanggalUTC = moment().utc().toISOString();
+      const tanggalPinjamWIB = moment().tz('Asia/Jakarta').format();
 
   
       const pinjam = await pool.query(
         `INSERT INTO peminjaman 
           (id_barang, peminjam, status, tanggal_pinjam) 
          VALUES ($1, $2, $3, $4) RETURNING *`,
-        [id_barang, peminjam, 'dipinjam', tanggalUTC]
+        [id_barang, peminjam, 'dipinjam', tanggalPinjamWIB]
       );
       
       
