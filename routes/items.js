@@ -67,7 +67,7 @@ router.delete('/hapus/:id', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 // Misalnya di routes/items.js
-router.get('/items', verifyToken, verifyAdmin, async (req, res) => {
+router.get('/', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT * FROM items ORDER BY id DESC');
     res.status(200).json(result.rows);
