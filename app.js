@@ -14,6 +14,9 @@ const corsOptions = {
 // Gunakan CORS untuk semua rute dengan opsi yang ditentukan
 app.use(cors(corsOptions));
 
+// Menangani permintaan preflight (OPTIONS) untuk semua rute
+app.options('*', cors(corsOptions));
+
 // Middleware lainnya
 app.use(express.json());
 
