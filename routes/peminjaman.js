@@ -36,7 +36,7 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
 
     await pool.query('UPDATE items SET stok = stok - 1 WHERE id = $1', [id_barang]);
 
-    res.status(201).json({ message: 'Peminjaman dicatat', data: pinjam.rows[0] });
+    res.status(201).json({ message: '✅ Peminjaman berhasil dicatat', data: pinjam.rows[0] });
   } catch (err) {
     console.error('❌ Gagal tambah peminjaman:', err.message);
     res.status(500).json({ error: err.message });
