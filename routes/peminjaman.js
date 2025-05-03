@@ -8,7 +8,7 @@ const ExcelJS = require('exceljs');
 const moment = require('moment-timezone');
 
 // 🔹 Admin menambahkan peminjaman
-rrouter.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
+router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
   const { id_barang, peminjam } = req.body;
   const tanggalPinjam = new Date().toISOString(); // UTC format
 
