@@ -8,7 +8,7 @@ const ExcelJS = require('exceljs');
 const moment = require('moment-timezone');
 
 // 🔹 Admin menambahkan peminjaman
-router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
+rrouter.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
   const { id_barang, peminjam } = req.body;
 
   if (!id_barang || !peminjam) {
@@ -26,7 +26,7 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
       return res.status(400).json({ message: 'Stok barang habis' });
     }
 
-    const tanggalPinjam = moment().tz('Asia/Jakarta').format();
+    const tanggalPinjam = new Date().toISOString(); // UTC format
 
     const pinjam = await pool.query(
       `INSERT INTO peminjaman (id_barang, peminjam, status, tanggal_pinjam)
@@ -43,10 +43,11 @@ router.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
+
 // 🔹 Mengembalikan barang
 router.put('/kembalikan/:id', verifyToken, verifyAdmin, async (req, res) => {
   const id = req.params.id;
-  const tanggalKembali = moment().tz('Asia/Jakarta').format();
+  const tanggalKembali = new Date().toISOString(); // gunakan waktu UTC
 
   try {
     const check = await pool.query('SELECT * FROM peminjaman WHERE id = $1', [id]);
@@ -75,6 +76,7 @@ router.put('/kembalikan/:id', verifyToken, verifyAdmin, async (req, res) => {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // 🔹 Riwayat peminjaman (dengan filter)
 router.get('/riwayat', verifyToken, verifyAdmin, async (req, res) => {
