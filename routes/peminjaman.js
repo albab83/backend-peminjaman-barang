@@ -10,6 +10,7 @@ const moment = require('moment-timezone');
 // 🔹 Admin menambahkan peminjaman
 rrouter.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
   const { id_barang, peminjam } = req.body;
+  const tanggalPinjam = new Date().toISOString(); // UTC format
 
   if (!id_barang || !peminjam) {
     return res.status(400).json({ message: 'id_barang dan peminjam wajib diisi' });
@@ -26,7 +27,6 @@ rrouter.post('/tambah', verifyToken, verifyAdmin, async (req, res) => {
       return res.status(400).json({ message: 'Stok barang habis' });
     }
 
-    const tanggalPinjam = new Date().toISOString(); // UTC format
 
     const pinjam = await pool.query(
       `INSERT INTO peminjaman (id_barang, peminjam, status, tanggal_pinjam)
