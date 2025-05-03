@@ -53,7 +53,7 @@ router.put('/ubah-stok/:id', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 // ✅ Hapus barang
-router.delete('/hapus/id', verifyToken, verifyAdmin, async (req, res) => {
+router.delete('/hapus/:id', verifyToken, verifyAdmin, async (req, res) => {
   const id = req.params.id;
 
   try {
