@@ -57,18 +57,23 @@ router.delete('/hapus/:id', verifyToken, verifyAdmin, async (req, res) => {
   const id = req.params.id;
 
   try {
-    const result = await pool.query('DELETE FROM items WHERE id = $1 RETURNING *', [id]);
+    // Soft delete: tandai item sebagai terhapus, bukan hapus permanen
+    const result = await pool.query(
+      'UPDATE items SET is_deleted = TRUE WHERE id = $1 RETURNING *',
+      [id]
+    );
 
     if (result.rows.length === 0) {
       return res.status(404).json({ message: 'Barang tidak ditemukan' });
     }
 
-    res.status(200).json({ message: 'Barang berhasil dihapus', data: result.rows[0] });
+    res.status(200).json({ message: 'Barang berhasil dihapus (soft delete)', data: result.rows[0] });
   } catch (err) {
     console.error('❌ Gagal hapus barang:', err.message);
     res.status(500).json({ message: 'Terjadi kesalahan saat menghapus barang', error: err.message });
   }
 });
+
 
 // ✅ Ambil semua data barang
 router.get('/barang', verifyToken, verifyAdmin, async (req, res) => {
