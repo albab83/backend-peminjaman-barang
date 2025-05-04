@@ -7,7 +7,7 @@ const { verifyToken, verifyAdmin } = require('../middleware/authMiddleware');
 router.get('/ringkasan', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const [totalBarangRes, totalDipinjamRes] = await Promise.all([
-      pool.query('SELECT COUNT(*) FROM items'),
+      pool.query('SELECT COUNT(*) FROM items WHERE is_deleted = false'),
       pool.query(`SELECT COUNT(*) FROM peminjaman WHERE status = 'dipinjam'`)
     ]);
 
@@ -24,5 +24,6 @@ router.get('/ringkasan', verifyToken, verifyAdmin, async (req, res) => {
     res.status(500).json({ message: 'Gagal mengambil data ringkasan', error: err.message });
   }
 });
+
 
 module.exports = router;
