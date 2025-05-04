@@ -80,12 +80,13 @@ router.put('/kembalikan/:id', verifyToken, verifyAdmin, async (req, res) => {
 
 // 🔹 Riwayat peminjaman (dengan filter)
 router.get('/riwayat', verifyToken, verifyAdmin, async (req, res) => {
-  const { status, nama } = req.query;
+  const { status, nama, page = 1, limit = 10 } = req.query;
 
-  let query = `
-    SELECT p.id, p.peminjam, p.status, p.tanggal_pinjam,
-      CASE WHEN p.status = 'dipinjam' THEN NULL ELSE p.tanggal_kembali END AS tanggal_kembali,
-      i.nama_barang
+  const pageInt = parseInt(page);
+  const limitInt = parseInt(limit);
+  const offset = (pageInt - 1) * limitInt;
+
+  let baseQuery = `
     FROM peminjaman p
     JOIN items i ON p.id_barang = i.id
   `;
@@ -104,18 +105,37 @@ router.get('/riwayat', verifyToken, verifyAdmin, async (req, res) => {
   }
 
   if (conditions.length > 0) {
-    query += ` WHERE ` + conditions.join(' AND ');
+    baseQuery += ` WHERE ` + conditions.join(' AND ');
   }
 
-  query += ' ORDER BY p.tanggal_pinjam DESC';
+  const dataQuery = `
+    SELECT p.id, p.peminjam, p.status, p.tanggal_pinjam,
+      CASE WHEN p.status = 'dipinjam' THEN NULL ELSE p.tanggal_kembali END AS tanggal_kembali,
+      i.nama_barang
+    ${baseQuery}
+    ORDER BY p.tanggal_pinjam DESC
+    LIMIT $${values.length + 1} OFFSET $${values.length + 2}
+  `;
+
+  const countQuery = `
+    SELECT COUNT(*) AS total
+    ${baseQuery}
+  `;
 
   try {
-    const result = await pool.query(query, values);
-    res.status(200).json({ data: result.rows });
+    const dataResult = await pool.query(dataQuery, [...values, limitInt, offset]);
+    const countResult = await pool.query(countQuery, values);
+    const total = parseInt(countResult.rows[0].total);
+
+    res.status(200).json({
+      data: dataResult.rows,
+      total
+    });
   } catch (err) {
     res.status(500).json({ error: err.message });
   }
 });
+
 
 // 🔹 Laporan peminjaman 7 hari terakhir (JSON)
 router.get('/laporan/mingguan', verifyToken, verifyAdmin, async (req, res) => {
