@@ -86,4 +86,31 @@ router.get('/barang', verifyToken, verifyAdmin, async (req, res) => {
   }
 });
 
+// PUT /api/items/update/:id
+router.put('/update/:id', verifyToken, verifyAdmin, async (req, res) => {
+  const { id } = req.params;
+  const { nama_barang, kategori, stok, status } = req.body;
+
+  try {
+    // Cek apakah item ada
+    const item = await pool.query('SELECT * FROM item WHERE id = $1', [id]);
+    if (item.rowCount === 0) {
+      return res.status(404).json({ message: 'Item tidak ditemukan' });
+    }
+
+    // Update item
+    await pool.query(
+      `UPDATE item 
+       SET nama_barang = $1, kategori = $2, stok = $3, status = $4 
+       WHERE id = $5`,
+      [nama_barang, kategori, stok, status, id]
+    );
+
+    res.json({ message: 'Item berhasil diperbarui' });
+  } catch (err) {
+    console.error('Error update item:', err);
+    res.status(500).json({ message: 'Terjadi kesalahan saat update item' });
+  }
+});
+
 module.exports = router;
