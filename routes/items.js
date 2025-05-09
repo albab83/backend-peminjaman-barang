@@ -93,14 +93,14 @@ router.put('/update/:id', verifyToken, verifyAdmin, async (req, res) => {
 
   try {
     // Cek apakah item ada
-    const item = await pool.query('SELECT * FROM item WHERE id = $1', [id]);
+    const item = await pool.query('SELECT * FROM items WHERE id = $1', [id]);
     if (item.rowCount === 0) {
       return res.status(404).json({ message: 'Item tidak ditemukan' });
     }
 
     // Update item
     await pool.query(
-      `UPDATE item 
+      `UPDATE items 
        SET nama_barang = $1, kategori = $2, stok = $3, status = $4 
        WHERE id = $5`,
       [nama_barang, kategori, stok, status, id]
