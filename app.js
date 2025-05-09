@@ -1,9 +1,8 @@
 const express = require('express');
 const cors = require('cors');
-require('dotenv').config();
-
 const app = express();
 const routes = require('express-list-endpoints');
+require('dotenv').config();
 console.log(routes(app));
 
 // ✅ Setup CORS dengan konfigurasi aman
@@ -28,6 +27,7 @@ app.use('/api/auth', require('./routes/auth'));
 app.use('/api/items', require('./routes/items'));
 app.use('/api/peminjaman', require('./routes/peminjaman'));
 app.use('/api/dashboard', require('./routes/dashboard'));
+app.use('/api/users', require('./routes/users'));
 
 // ✅ Fallback untuk rute yang tidak ditemukan
 app.use((req, res, next) => {
