@@ -75,10 +75,20 @@ router.delete('/hapus/:id', verifyToken, verifyAdmin, async (req, res) => {
 });
 
 
-// ✅ Ambil semua data barang
+// ✅ Ambil semua data barang kecuali yg terhapus dan stok = 0
 router.get('/barang', verifyToken, verifyAdmin, async (req, res) => {
   try {
     const result = await pool.query('SELECT id, nama_barang, kategori, stok FROM items WHERE stok > 0 AND is_deleted = false');
+    res.status(200).json({ data: result.rows });
+  } catch (err) {
+    console.error('❌ Gagal ambil data barang:', err.message);
+    res.status(500).json({ message: 'Gagal mengambil data barang', error: err.message });
+  }
+});
+
+router.get('/all-barang', verifyToken, verifyAdmin, async (req, res) => {
+  try {
+    const result = await pool.query('SELECT * FROM items ORDER BY id DESC');
     res.status(200).json({ data: result.rows });
   } catch (err) {
     console.error('❌ Gagal ambil data barang:', err.message);
