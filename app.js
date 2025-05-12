@@ -7,7 +7,7 @@ console.log(routes(app));
 
 // ✅ Setup CORS dengan konfigurasi aman
 const corsOptions = {
-  origin: ['https://frontend-peminjaman-barang.vercel.app', 'https://peminjaman-barang-ab.vercel.app'],
+  origin: ['https://frontend-peminjaman-barang.vercel.app', 'https://peminjaman-barang-ab.vercel.app',  'http://localhost:5173/'],
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowedHeaders: ['Content-Type', 'Authorization'],
   credentials: true
